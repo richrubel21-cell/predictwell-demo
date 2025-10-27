@@ -637,7 +637,7 @@ resp_risk, resp_explain, resp_time, resp_forecast = predict_respiratory(payload)
 cardiac_risk, cardiac_explain, cardiac_time, cardiac_forecast = predict_cardiac(payload)
 fall_risk, fall_explain, fall_time, fall_forecast = predict_falls(payload)
     # Determine overall severity
-    max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
+max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
     if max_risk >= 80:
         overall = "CRITICAL"
     elif max_risk >= 60:
@@ -1167,6 +1167,7 @@ def healthz():
 if __name__ == "__main__":
 
     uvicorn.run("app_expanded:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+
 
 
 
