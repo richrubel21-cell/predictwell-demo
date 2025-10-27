@@ -633,11 +633,11 @@ def predict_all_conditions(payload: Dict[str, Any] = Body(...)):
     
     # Run all predictors
     sepsis_risk, sepsis_explain, sepsis_time, sepsis_forecast = predict_sepsis(payload)
-resp_risk, resp_explain, resp_time, resp_forecast = predict_respiratory(payload)
-cardiac_risk, cardiac_explain, cardiac_time, cardiac_forecast = predict_cardiac(payload)
-fall_risk, fall_explain, fall_time, fall_forecast = predict_falls(payload)
+    resp_risk, resp_explain, resp_time, resp_forecast = predict_respiratory(payload)
+    cardiac_risk, cardiac_explain, cardiac_time, cardiac_forecast = predict_cardiac(payload)
+    fall_risk, fall_explain, fall_time, fall_forecast = predict_falls(payload)
     # Determine overall severity
-max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
+    max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
     if max_risk >= 80:
         overall = "CRITICAL"
     elif max_risk >= 60:
@@ -1084,9 +1084,9 @@ async def websocket_monitor(websocket: WebSocket):
                 state = sim.get_current_state()
                 
                 sepsis_risk, _, sepsis_time, sepsis_forecast = predict_sepsis(state)
-            resp_risk, _, resp_time, resp_forecast = predict_respiratory(state)
-            cardiac_risk, _, cardiac_time, cardiac_forecast = predict_cardiac(state)
-            fall_risk, _, fall_time, fall_forecast = predict_falls(state)
+                resp_risk, _, resp_time, resp_forecast = predict_respiratory(state)
+                cardiac_risk, _, cardiac_time, cardiac_forecast = predict_cardiac(state)
+                fall_risk, _, fall_time, fall_forecast = predict_falls(state)
                 
                 max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
                 
@@ -1167,7 +1167,3 @@ def healthz():
 if __name__ == "__main__":
 
     uvicorn.run("app_expanded:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
-
-
-
-
