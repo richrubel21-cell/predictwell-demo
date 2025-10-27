@@ -101,6 +101,17 @@ def time_to_event(risk: float) -> str:
     else:
         return "stable"
 
+def forecast_future(risk: float) -> Dict[str, str]:
+    """Generate 3-day, 5-day, 1-week, 2-week forecasts"""
+    if risk >= 80:
+        return {"3day": "High", "5day": "High", "1week": "Critical", "2week": "Critical"}
+    elif risk >= 60:
+        return {"3day": "Moderate", "5day": "High", "1week": "High", "2week": "Critical"}
+    elif risk >= 40:
+        return {"3day": "Low", "5day": "Moderate", "1week": "Moderate", "2week": "High"}
+    else:
+        return {"3day": "Stable", "5day": "Stable", "1week": "Low", "2week": "Low"}
+
 # -----------------------------------------------------------------------------
 # SEPSIS PREDICTION MODULE
 # -----------------------------------------------------------------------------
@@ -212,7 +223,7 @@ def predict_sepsis(payload: Dict[str, Any]) -> Tuple[float, List[str], str]:
             uniq.append(e)
             seen.add(e)
 
-    return risk, uniq, time_to_event(risk)
+    return risk, uniq, time_to_event(risk), forecast_future(risk)
 
 # -----------------------------------------------------------------------------
 # RESPIRATORY DETERIORATION MODULE
@@ -342,7 +353,7 @@ def predict_respiratory(payload: Dict[str, Any]) -> Tuple[float, List[str], str]
             uniq.append(e)
             seen.add(e)
 
-    return risk, uniq, time_to_event(risk)
+    return risk, uniq, time_to_event(risk), forecast_future(risk)
 
 # -----------------------------------------------------------------------------
 # CARDIAC EVENT PREDICTION MODULE
@@ -514,7 +525,7 @@ def predict_cardiac(payload: Dict[str, Any]) -> Tuple[float, List[str], str]:
             uniq.append(e)
             seen.add(e)
 
-    return risk, uniq, time_to_event(risk)
+    return risk, uniq, time_to_event(risk), forecast_future(risk)
 
 # -----------------------------------------------------------------------------
 # FALL RISK (original eldercare module, simplified)
@@ -601,8 +612,7 @@ def predict_falls(payload: Dict[str, Any]) -> Tuple[float, List[str], str]:
             uniq.append(e)
             seen.add(e)
 
-    return risk, uniq, time_to_event(risk)
-
+    return risk, uniq, time_to_event(risk), forecast_future(risk)
 # -----------------------------------------------------------------------------
 # UNIFIED PREDICTION ENDPOINT
 # -----------------------------------------------------------------------------
@@ -622,11 +632,10 @@ def predict_all_conditions(payload: Dict[str, Any] = Body(...)):
     patient_id = payload.get("patient_id", "unknown")
     
     # Run all predictors
-    sepsis_risk, sepsis_explain, sepsis_time = predict_sepsis(payload)
-    resp_risk, resp_explain, resp_time = predict_respiratory(payload)
-    cardiac_risk, cardiac_explain, cardiac_time = predict_cardiac(payload)
-    fall_risk, fall_explain, fall_time = predict_falls(payload)
-
+    sepsis_risk, sepsis_explain, sepsis_time, sepsis_forecast = predict_sepsis(payload)
+resp_risk, resp_explain, resp_time, resp_forecast = predict_respiratory(payload)
+cardiac_risk, cardiac_explain, cardiac_time, cardiac_forecast = predict_cardiac(payload)
+fall_risk, fall_explain, fall_time, fall_forecast = predict_falls(payload)
     # Determine overall severity
     max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
     if max_risk >= 80:
@@ -740,9 +749,9 @@ class PatientSimulator:
     def _evolve_stable(self):
         """Stable patient - minor fluctuations only"""
         # Add small random walk
-        self.vitals["hr"] += random.uniform(-2, 2)
-        self.vitals["sbp"] += random.uniform(-3, 3)
-        self.vitals["rr"] += random.uniform(-0.5, 0.5)
+        self.vitals["hr"] += random.uniform(-0.5, 0.5)
+        self.vitals["sbp"] += random.uniform(-1, 1)
+        self.vitals["rr"] += random.uniform(-0.1, 0.1)
         
         # Keep within normal bounds
         self.vitals["hr"] = max(60, min(90, self.vitals["hr"]))
@@ -968,10 +977,10 @@ async def monitor_all_patients():
         state = sim.get_current_state()
         
         # Run predictions
-        sepsis_risk, sepsis_explain, sepsis_time = predict_sepsis(state)
-        resp_risk, resp_explain, resp_time = predict_respiratory(state)
-        cardiac_risk, cardiac_explain, cardiac_time = predict_cardiac(state)
-        fall_risk, fall_explain, fall_time = predict_falls(state)
+        sepsis_risk, sepsis_explain, sepsis_time, sepsis_forecast = predict_sepsis(state)
+        resp_risk, resp_explain, resp_time, resp_forecast = predict_respiratory(state)
+        cardiac_risk, cardiac_explain, cardiac_time, cardiac_forecast = predict_cardiac(state)
+        fall_risk, fall_explain, fall_time, fall_forecast = predict_falls(state)
         
         max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
         
@@ -1074,10 +1083,10 @@ async def websocket_monitor(websocket: WebSocket):
             for patient_id, sim in active_simulations.items():
                 state = sim.get_current_state()
                 
-                sepsis_risk, _, sepsis_time = predict_sepsis(state)
-                resp_risk, _, resp_time = predict_respiratory(state)
-                cardiac_risk, _, cardiac_time = predict_cardiac(state)
-                fall_risk, _, fall_time = predict_falls(state)
+                sepsis_risk, _, sepsis_time, sepsis_forecast = predict_sepsis(state)
+            resp_risk, _, resp_time, resp_forecast = predict_respiratory(state)
+            cardiac_risk, _, cardiac_time, cardiac_forecast = predict_cardiac(state)
+            fall_risk, _, fall_time, fall_forecast = predict_falls(state)
                 
                 max_risk = max(sepsis_risk, resp_risk, cardiac_risk, fall_risk)
                 
@@ -1158,5 +1167,6 @@ def healthz():
 if __name__ == "__main__":
 
     uvicorn.run("app_expanded:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+
 
 
