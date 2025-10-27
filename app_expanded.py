@@ -910,8 +910,8 @@ def init_simulation_ward():
             pid = f"PT-{patient_id:03d}"
             active_simulations[pid] = PatientSimulator(pid, scenario)
             patient_id += 1
-            # Start one sepsis patient at high risk
-active_simulations["PT-004"].advance_time(6.0)
+    # Start one sepsis patient at high risk
+    active_simulations["PT-004"].advance_time(6.0)
 
 # Initialize on startup
 init_simulation_ward()
@@ -1158,3 +1158,4 @@ def healthz():
 if __name__ == "__main__":
 
     uvicorn.run("app_expanded:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+
