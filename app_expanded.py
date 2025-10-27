@@ -1067,7 +1067,7 @@ async def websocket_monitor(websocket: WebSocket):
             
             # Advance simulation
             for sim in active_simulations.values():
-                sim.advance_time(0.083)  # 5 minutes
+                sim.advance_time(0.5)  # 5 minutes
             
             # Get current state
             patients = []
@@ -1158,4 +1158,5 @@ def healthz():
 if __name__ == "__main__":
 
     uvicorn.run("app_expanded:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+
 
