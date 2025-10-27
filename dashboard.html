@@ -345,6 +345,14 @@
             background: linear-gradient(90deg, #10b981, #059669);
         }
 
+        .risk-time {
+            font-size: 0.75rem;
+            color: #fbbf24;
+            font-style: italic;
+            margin-top: 0.25rem;
+            opacity: 0.9;
+        }
+
         .time-info {
             margin-top: 1rem;
             padding-top: 1rem;
@@ -354,6 +362,51 @@
             font-size: 0.875rem;
             opacity: 0.8;
         }
+
+        .forecasts-container {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .forecast-title {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .forecast-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(71, 85, 105, 0.2);
+            border-radius: 8px;
+        }
+
+        .forecast-period {
+            font-size: 0.625rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .forecast-value {
+            font-size: 0.813rem;
+            font-weight: 700;
+        }
+
+        .forecast-stable { color: #10b981; }
+        .forecast-low { color: #3b82f6; }
+        .forecast-moderate { color: #eab308; }
+        .forecast-high { color: #f59e0b; }
+        .forecast-critical { color: #ef4444; }
 
         .connection-status {
             position: fixed;
@@ -603,6 +656,28 @@
                             ${createRiskBar('Falls', patient.risks.falls)}
                         </div>
 
+                        <div class="forecasts-container">
+                            <div class="forecast-title">Risk Forecast</div>
+                            <div class="forecast-grid">
+                                <div class="forecast-item">
+                                    <div class="forecast-period">3 Day</div>
+                                    <div class="forecast-value forecast-stable">Stable</div>
+                                </div>
+                                <div class="forecast-item">
+                                    <div class="forecast-period">5 Day</div>
+                                    <div class="forecast-value forecast-stable">Stable</div>
+                                </div>
+                                <div class="forecast-item">
+                                    <div class="forecast-period">1 Week</div>
+                                    <div class="forecast-value forecast-low">Low</div>
+                                </div>
+                                <div class="forecast-item">
+                                    <div class="forecast-period">2 Week</div>
+                                    <div class="forecast-value forecast-low">Low</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="time-info">
                             <span>Elapsed: ${Math.floor(patient.elapsed_hours)}h ${Math.round((patient.elapsed_hours % 1) * 60)}m</span>
                             <span>Primary: ${patient.primary_concern}</span>
@@ -612,7 +687,9 @@
             }).join('');
         }
 
-        function createRiskBar(label, score) {
+        function createRiskBar(label, riskData) {
+            const score = riskData.score || 0;
+            const timeToEvent = riskData.time_to_event || 'stable';
             const severity = getSeverityClass(score);
             return `
                 <div class="risk-bar-container">
@@ -623,6 +700,7 @@
                     <div class="risk-bar">
                         <div class="risk-bar-fill ${severity}" style="width: ${score}%"></div>
                     </div>
+                    <div class="risk-time">${timeToEvent}</div>
                 </div>
             `;
         }
