@@ -641,7 +641,7 @@
                             </div>
                             <div class="vital-item">
                                 <div class="vital-label">Temp</div>
-                                <div class="vital-value">${patient.vitals.temp}°C</div>
+                                <div class="vital-value">${((patient.vitals.temp * 9/5) + 32).toFixed(1)}°F</div>
                             </div>
                             <div class="vital-item">
                                 <div class="vital-label">Risk</div>
@@ -659,22 +659,10 @@
                         <div class="forecasts-container">
                             <div class="forecast-title">Risk Forecast</div>
                             <div class="forecast-grid">
-                                <div class="forecast-item">
-                                    <div class="forecast-period">3 Day</div>
-                                    <div class="forecast-value forecast-stable">Stable</div>
-                                </div>
-                                <div class="forecast-item">
-                                    <div class="forecast-period">5 Day</div>
-                                    <div class="forecast-value forecast-stable">Stable</div>
-                                </div>
-                                <div class="forecast-item">
-                                    <div class="forecast-period">1 Week</div>
-                                    <div class="forecast-value forecast-low">Low</div>
-                                </div>
-                                <div class="forecast-item">
-                                    <div class="forecast-period">2 Week</div>
-                                    <div class="forecast-value forecast-low">Low</div>
-                                </div>
+                                ${createForecast('3 Day', getMaxForecast(patient.risks, '3day'))}
+                                ${createForecast('5 Day', getMaxForecast(patient.risks, '5day'))}
+                                ${createForecast('1 Week', getMaxForecast(patient.risks, '1week'))}
+                                ${createForecast('2 Week', getMaxForecast(patient.risks, '2week'))}
                             </div>
                         </div>
 
@@ -720,6 +708,33 @@
             } catch (error) {
                 console.error('Reset failed:', error);
             }
+        }
+
+        function createForecast(period, value) {
+            const className = `forecast-${value.toLowerCase()}`;
+            return `
+                <div class="forecast-item">
+                    <div class="forecast-period">${period}</div>
+                    <div class="forecast-value ${className}">${value}</div>
+                </div>
+            `;
+        }
+
+        function getMaxForecast(risks, period) {
+            const forecasts = [
+                risks.sepsis?.forecast?.[period] || 'Stable',
+                risks.respiratory?.forecast?.[period] || 'Stable',
+                risks.cardiac?.forecast?.[period] || 'Stable',
+                risks.falls?.forecast?.[period] || 'Stable'
+            ];
+            
+            const severity = ['Critical', 'High', 'Moderate', 'Low', 'Stable'];
+            
+            for (const level of severity) {
+                if (forecasts.includes(level)) return level;
+            }
+            
+            return 'Stable';
         }
 
         // Start monitoring
