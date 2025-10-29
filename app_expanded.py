@@ -1006,21 +1006,25 @@ async def monitor_all_patients():
                 "sepsis": {
                     "score": round(sepsis_risk, 1),
                     "time_to_event": sepsis_time,
+                    "forecast": sepsis_forecast,
                     "top_factors": sepsis_explain[:3]
                 },
                 "respiratory": {
                     "score": round(resp_risk, 1),
                     "time_to_event": resp_time,
+                    "forecast": resp_forecast,
                     "top_factors": resp_explain[:3]
                 },
                 "cardiac": {
                     "score": round(cardiac_risk, 1),
                     "time_to_event": cardiac_time,
+                    "forecast": cardiac_forecast,
                     "top_factors": cardiac_explain[:3]
                 },
                 "falls": {
                     "score": round(fall_risk, 1),
                     "time_to_event": fall_time,
+                    "forecast": fall_forecast,
                     "top_factors": fall_explain[:3]
                 }
             },
@@ -1098,10 +1102,26 @@ async def websocket_monitor(websocket: WebSocket):
                     "scenario": sim.scenario,
                     "max_risk": round(max_risk, 1),
                     "risks": {
-                        "sepsis": round(sepsis_risk, 1),
-                        "respiratory": round(resp_risk, 1),
-                        "cardiac": round(cardiac_risk, 1),
-                        "falls": round(fall_risk, 1)
+                        "sepsis": {
+                            "score": round(sepsis_risk, 1),
+                            "time_to_event": sepsis_time,
+                            "forecast": sepsis_forecast
+                        },
+                        "respiratory": {
+                            "score": round(resp_risk, 1),
+                            "time_to_event": resp_time,
+                            "forecast": resp_forecast
+                        },
+                        "cardiac": {
+                            "score": round(cardiac_risk, 1),
+                            "time_to_event": cardiac_time,
+                            "forecast": cardiac_forecast
+                        },
+                        "falls": {
+                            "score": round(fall_risk, 1),
+                            "time_to_event": fall_time,
+                            "forecast": fall_forecast
+                        }
                     },
                     "vitals": {
                         "hr": round(state.get("hr", 0), 1),
